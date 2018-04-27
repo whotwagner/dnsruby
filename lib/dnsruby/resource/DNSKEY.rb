@@ -313,10 +313,34 @@ module Dnsruby
           elsif [Algorithms.DSA,
               Algorithms.DSA_NSEC3_SHA1].include?(@algorithm)
             @public_key = dsa_key
-          end
+	  elsif [Algorithms.ECDSAP256SHA256].include?(@algorithm)
+	  	@public_key = ecds_key
+	  end
         end
         #  @TODO@ Support other key encodings!
         return @public_key
+      end
+
+      def ecds_key
+          require 'base64'
+
+          enckey = Base64.strict_encode64(@key)
+	  puts enckey
+          group = OpenSSL::PKey::EC::Group.new('secp256k1')
+#    group = OpenSSL::PKey::EC::Group.new('prime256v1')
+	  tmpkey =  OpenSSL::PKey::EC.new(group)
+	  begin
+	  public_key_bn = OpenSSL::BN.new(@key)
+	  puts "have a bignum"
+	  public_key = OpenSSL::PKey::EC::Point.new(group, public_key_bn)
+	  rescue  Exception => e
+		puts "Some error occured: #{e.message}"
+		puts e.class.to_s
+#	puts e.backtrace.inspect
+	  end
+	  tmpkey.public_key = public_key
+	  puts "i am done"
+	  return tmpkey
       end
 
       def rsa_key

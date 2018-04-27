@@ -800,6 +800,10 @@ module Dnsruby
 
         asn1 = OpenSSL::ASN1::Sequence.new([r_asn1, s_asn1]).to_der
         verified = keyrec.public_key.verify(OpenSSL::Digest::DSS1.new, asn1, sig_data)
+      elsif (sigrec.algorithm == Algorithms.ECDSAP256SHA256)
+	puts "do verification"
+	verified = keyrec.public_key.verify(OpenSSL::Digest::SHA256.new,sigrec.signature,sig_data)
+	puts "verify-status is: #{verified}"
       else
         raise RuntimeError.new("Algorithm #{sigrec.algorithm.code} unsupported by Dnsruby")
       end
